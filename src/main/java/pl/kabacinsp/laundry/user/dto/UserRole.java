@@ -14,7 +14,7 @@ public class UserRole {
     private long role_id;
 
     @Column(name = "role", nullable = false)
-    private String role;
+    private RoleType name;
 
     /**
      * Many to Many Example - see Role.
@@ -33,12 +33,12 @@ public class UserRole {
         this.role_id = role_id;
     }
 
-    public String getRole() {
-        return role;
+    public RoleType getName() {
+        return name;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setName(String name) {
+        this.name = RoleType.valueOf(name);
     }
 
     public Set<User> getUsers() {

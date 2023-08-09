@@ -13,6 +13,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long user_id;
 
+    private String username;
+
     @Email
     private String email;
 
@@ -35,6 +37,14 @@ public class User {
 
     public void setId(long id) {
         this.user_id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
