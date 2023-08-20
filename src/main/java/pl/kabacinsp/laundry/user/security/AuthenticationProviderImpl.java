@@ -10,13 +10,12 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-public class AuthenticationProvider extends DaoAuthenticationProvider {
+public class AuthenticationProviderImpl extends DaoAuthenticationProvider {
 
-    Logger log = LoggerFactory.getLogger(AuthenticationProvider.class);
+    Logger log = LoggerFactory.getLogger(AuthenticationProviderImpl.class);
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
         UserDetails u = null;
@@ -36,6 +35,10 @@ public class AuthenticationProvider extends DaoAuthenticationProvider {
         }
 
         throw new BadCredentialsException(messages.getMessage("CustomDaoAuthenticationProvider.badCredentials", "Bad credentials"));
+    }
 
+    @Override
+    public boolean supports(Class<?> authentication) {
+        return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 }
