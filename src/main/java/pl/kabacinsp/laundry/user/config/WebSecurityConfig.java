@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -19,6 +19,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import pl.kabacinsp.laundry.user.security.AccessDeniedHandlerImpl;
 import pl.kabacinsp.laundry.user.security.AuthenticationProviderImpl;
@@ -28,9 +30,18 @@ import pl.kabacinsp.laundry.user.security.jwt.AuthTokenFilter;
 import pl.kabacinsp.laundry.user.service.UserDetailsServiceImpl;
 
 @Configuration
-@EnableMethodSecurity
-// @Order(-20)
-public class WebSecurityConfig {
+@EnableWebSecurity
+public class WebSecurityConfig implements WebMvcConfigurer {
+
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    registry
+        .addMapping("/auth/**")
+        .allowedOrigins("https://localhost:4200")
+        .allowedMethods("PUT", "GET", "DELETE", "OPTIONS", "PATCH", "POST")
+        .allowCredentials(true)
+        .maxAge(3600);
+  }
 
   @Autowired private UserDetailsServiceImpl customUserDetailsService;
 
