@@ -10,23 +10,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-import pl.kabacinsp.laundry.user.security.AccessDeniedHandlerImpl;
-import pl.kabacinsp.laundry.user.security.AuthenticationProviderImpl;
-import pl.kabacinsp.laundry.user.security.AuthenticationSuccessHandleImpl;
-import pl.kabacinsp.laundry.user.security.LogoutSuccessHandlerImpl;
+import pl.kabacinsp.laundry.user.security.*;
 import pl.kabacinsp.laundry.user.security.jwt.AuthTokenFilter;
+import pl.kabacinsp.laundry.user.security.jwt.JwtAuthEntryPoint;
 import pl.kabacinsp.laundry.user.service.UserDetailsServiceImpl;
 
 @Configuration
@@ -44,6 +39,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
   }
 
   @Autowired private UserDetailsServiceImpl customUserDetailsService;
+  @Autowired private JwtAuthEntryPoint unauthorizedHandler;
 
   @Bean
   public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -56,34 +52,21 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
 
     http.csrf(AbstractHttpConfigurer::disable)
+        .formLogin(form -> form.loginPage("/login").permitAll())
         .authorizeHttpRequests(
             (auth) ->
                 auth.requestMatchers(mvcMatcherBuilder.pattern("/auth/**"))
                     .permitAll()
-                    .requestMatchers(mvcMatcherBuilder.pattern("/test/**"))
+                    .requestMatchers(mvcMatcherBuilder.pattern("/favicon.ico"))
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
         .authenticationProvider(authenticationProvider())
-        .addFilterBefore(
-            authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     return http.build();
-  }
-
-  @Bean
-  public AccessDeniedHandler accessDeniedHandler() {
-    return new AccessDeniedHandlerImpl();
-  }
-
-  @Bean
-  public LogoutSuccessHandler logoutSuccessHandler() {
-    return new LogoutSuccessHandlerImpl();
-  }
-
-  @Bean
-  public AuthenticationSuccessHandler loginSuccessHandler() {
-    return new AuthenticationSuccessHandleImpl();
   }
 
   @Bean
